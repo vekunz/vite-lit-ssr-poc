@@ -39,6 +39,9 @@ export default function vitePluginLit() {
                                     const resultHTML = await collectResult(ssrResult);
 
                                     const parsedNodes = parseDocument(resultHTML).childNodes;
+                                    if (isSvelteFile(id)) {
+                                        handleSlotsForSvelte(parsedNodes);
+                                    }
                                     childNodes.splice(i, 1, ...parsedNodes);
                                     i += (parsedNodes.length - 1);
                                 }
@@ -54,6 +57,22 @@ export default function vitePluginLit() {
                     map: null
                 };
             }
+        }
+    }
+}
+
+/**
+ * @param {ChildNode[]} nodes
+ * @return {void}
+ */
+function handleSlotsForSvelte(nodes) {
+    for (const node of nodes) {
+        if (node.tagName === 'slot') {
+            node.tagName = 'svelte:element';
+            node.attribs.this = 'slot';
+        }
+        if (node.childNodes && node.childNodes.length > 0) {
+            handleSlotsForSvelte([...node.childNodes])
         }
     }
 }
